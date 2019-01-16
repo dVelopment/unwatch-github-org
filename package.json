@@ -1,0 +1,20 @@
+{
+  "name": "unwatch-github-org",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "email": "d@velopment.at",
+    "name": "Daniel Holzmann"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dVelopment/unwatch-github-org.git"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "bin": "unwatch"
+}

@@ -1,0 +1,62 @@
+#! /usr/bin/env node
+
+const request = require("request-promise-native");
+require("dotenv").config();
+
+const { GITHUB_USERNAME: user, GITHUB_PASSWORD: pass } = process.env;
+
+if (!user || !pass) {
+    console.error(
+        "GITHUB_USERNAME and/or GITHUB_PASSWORD environment variable missing. Make sure to add a .env file"
+    );
+    process.exit(2);
+}
+
+const readline = require("readline").createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+async function getSubscription(client, repo) {
+    try {
+        const url = `/repos/${repo}/subscription`;
+        await client.get(url);
+
+        // no 404 error => we're watching this repository
+        await client.delete(url);
+        console.info(`subscription to https://github.com/${repo} deleted`);
+    } catch (error) {
+        if (error.statusCode === 404) {
+            console.info(`not watching https://github.com/${repo}`);
+        }
+    }
+}
+
+async function main(code, organization) {
+    readline.close();
+    const client = request.defaults({
+        baseUrl: "https://api.github.com/",
+        json: true,
+        auth: { user, pass },
+        headers: { "X-GitHub-OTP": code, "User-Agent": "request" }
+    });
+
+    const repos = await client.get(`/orgs/${organization}/repos`);
+    const repoNames = repos.map(repo => repo.full_name);
+
+    while (repoNames.length > 0) {
+        await getSubscription(client, repoNames.shift());
+    }
+}
+
+readline.question(
+    "enter the organization name you want to unwatch: ",
+    organization => {
+        readline.question(
+            "enter the google authenticator code for Github: ",
+            code => {
+                main(code, organization);
+            }
+        );
+    }
+);
